@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Avis Traumato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one app column (max 1040px). Liste des demandes → dossier en deux colonnes (pièces cliniques | échanges et avis). */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --sunken: #e9edf1;
+  --ink: #17222e;
+  --muted: #5b6876;
+  --line: #d5dce3;
+  --accent: #1f5f8b;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2edf5;
+  --film: #0d1319;
+  --u-red: #b42318; --u-red-bg: #fde8e6;
+  --u-amber: #9a5b00; --u-amber-bg: #fdf0d8;
+  --u-slate: #3d5166; --u-slate-bg: #e6ebf0;
+  --ok: #1d6b45; --ok-bg: #e0f2e8;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b; --surface: #17212a; --sunken: #1d2933; --ink: #e5ebf0; --muted: #9aa8b5; --line: #2b3a47;
+    --accent: #6fb0dd; --accent-ink: #0c1620; --accent-soft: #1c3346; --film: #05080b;
+    --u-red: #ff8a7e; --u-red-bg: #3a1b18; --u-amber: #f2b85a; --u-amber-bg: #352813;
+    --u-slate: #b3c3d3; --u-slate-bg: #243241; --ok: #7fd3a5; --ok-bg: #16301f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b; --surface: #17212a; --sunken: #1d2933; --ink: #e5ebf0; --muted: #9aa8b5; --line: #2b3a47;
+  --accent: #6fb0dd; --accent-ink: #0c1620; --accent-soft: #1c3346; --film: #05080b;
+  --u-red: #ff8a7e; --u-red-bg: #3a1b18; --u-amber: #f2b85a; --u-amber-bg: #352813;
+  --u-slate: #b3c3d3; --u-slate-bg: #243241; --ok: #7fd3a5; --ok-bg: #16301f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+:root { padding-top: env(safe-area-inset-top, 0px); }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.5rem; } h2 { font-size: 1.2rem; } h3 { font-size: 1rem; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-data); font-size: .82em; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+
+/* Top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand svg { flex: none; }
+.brand b { font-family: var(--font-display); font-size: 1.15rem; }
+.brand small { display: block; color: var(--muted); font-size: .78rem; }
+.seg { display: inline-flex; background: var(--sunken); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; font-size: .88rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+.demo { background: var(--u-amber-bg); color: var(--u-amber); font-size: .82rem; padding: 6px 16px; text-align: center; }
+
+/* Buttons */
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: .9rem; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--accent); padding-inline: 4px; }
+.btn.danger { color: var(--u-red); }
+
+/* Pills */
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.u2h { color: var(--u-red); background: var(--u-red-bg); }
+.u24h { color: var(--u-amber); background: var(--u-amber-bg); }
+.u72h { color: var(--u-slate); background: var(--u-slate-bg); }
+.st-nouvelle { color: var(--accent); background: var(--accent-soft); }
+.st-prise { color: var(--u-slate); background: var(--u-slate-bg); }
+.st-question { color: var(--u-amber); background: var(--u-amber-bg); }
+.st-avis { color: var(--ok); background: var(--ok-bg); }
+.st-close { color: var(--muted); background: var(--sunken); }
+
+/* List */
+.head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; padding-block: 24px 14px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: .84rem; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.list { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; text-align: left; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px 10px 10px; }
+.row:hover { border-color: var(--accent); }
+.row .thumb { width: 64px; height: 64px; border-radius: 6px; background: var(--film); object-fit: cover; }
+.row .body { min-width: 0; }
+.row .t { font-weight: 700; }
+.row .s { color: var(--muted); font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.empty { padding: 32px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
+@media (max-width: 560px) {
+  .row { grid-template-columns: 52px 1fr; }
+  .row .thumb { width: 52px; height: 52px; }
+  .row .meta { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; flex-wrap: wrap; }
+}
+
+/* Detail */
+.back { margin-top: 16px; }
+.dossier-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding-block: 8px 18px; }
+.dossier-head h1 { flex: 1 1 320px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: .92rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; }
+@media (max-width: 480px) { .kv { grid-template-columns: 1fr; } .kv dd { margin-bottom: 6px; } }
+.films { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.film { position: relative; border: 0; padding: 0; background: var(--film); border-radius: 6px; overflow: hidden; aspect-ratio: 1; max-width: 100%; }
+.film img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.film span { position: absolute; left: 6px; bottom: 6px; font-family: var(--font-data); font-size: .66rem; color: #dfe7ee; background: rgb(0 0 0 / .55); padding: 1px 5px; border-radius: 3px; }
+
+/* Thread */
+.thread { display: grid; gap: 10px; }
+.msg { border-radius: var(--r); padding: 10px 12px; background: var(--sunken); font-size: .93rem; }
+.msg.me { background: var(--accent-soft); }
+.msg .who { font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+.msg.event { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-size: .84rem; padding: 6px 10px; }
+.avis { border: 2px solid var(--ok); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; background: var(--surface); }
+.avis h3 { color: var(--ok); }
+.avis ul { margin: 0; padding-left: 18px; }
+.billing { font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* Forms */
+form { display: grid; gap: 16px; }
+fieldset { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin: 0; display: grid; gap: 12px; background: var(--surface); min-width: 0; }
+legend { font-family: var(--font-display); font-weight: 700; padding: 0 6px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .field > span { font-size: .85rem; font-weight: 700; }
+input[type=text], input[type=date], input[type=number], select, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+textarea { min-height: 76px; resize: vertical; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.choice { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice label { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: .88rem; display: inline-flex; align-items: center; gap: 6px; background: var(--bg); font-weight: 400; }
+.choice input { accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; }
+.check input { margin-top: 4px; accent-color: var(--accent); }
+.drop { border: 1px dashed var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; background: var(--bg); }
+.err { color: var(--u-red); font-size: .85rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+/* Body map */
+.bodymap { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Modal */
+.modal { position: fixed; inset: 0; background: rgb(5 10 15 / .7); display: grid; place-items: center; padding: 16px; z-index: 20; }
+.modal .box { background: var(--surface); border-radius: var(--r); max-width: 720px; width: 100%; max-height: 90vh; overflow: auto; padding: 18px; display: grid; gap: 12px; }
+.modal img { width: 100%; border-radius: 6px; background: var(--film); }
+.modal pre { white-space: pre-wrap; font-family: var(--font-data); font-size: .8rem; background: var(--sunken); padding: 12px; border-radius: 8px; margin: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: .9rem; z-index: 30; }
+.foot { margin-top: 32px; font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; }
+@media (prefers-reduced-motion: no-preference) { .row, .btn, .chip { transition: border-color .15s; } }
+</style>
+
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="8" fill="var(--accent)"/><path d="M11 8c-2 0-3 2-2 3.5L13 15v4l-4 3.5C8 24 9 26 11 26s2.5-2 2.5-2h7s.5 2 2.5 2 3-2 2-3.5L21 19v-4l4-3.5C26 10 25 8 23 8s-2.5 2-2.5 2h-7S13 8 11 8z" fill="var(--accent-ink)"/></svg>
+      <div><b>Avis Traumato</b><small id="whoami"></small></div>
+    </div>
+    <div class="seg" role="group" aria-label="Changer de rôle">
+      <button id="role-mg" type="button">Médecin traitant</button>
+      <button id="role-ortho" type="button">Équipe traumato</button>
+    </div>
+  </div>
+  <div class="demo" id="banner">Connexion à l’espace de test… Patients fictifs uniquement.</div>
+</div>
+<main class="wrap" id="app"></main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  // ---------- Fake radiographs (SVG data URIs) ----------
+  const svgUri = s => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+  const film = (inner, tag) => svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><filter id="b"><feGaussianBlur stdDeviation="2.4"/></filter><radialGradient id="g" cx=".5" cy=".45" r=".7"><stop offset="0" stop-color="#1e2a33"/><stop offset="1" stop-color="#05080b"/></radialGradient></defs><rect width="300" height="300" fill="url(#g)"/><g filter="url(#b)" fill="#c9d3da" fill-opacity=".85">${inner}</g><text x="14" y="26" fill="#e6eef3" font-family="monospace" font-size="16">${tag}</text></svg>`);
+  const XR = {
+    chevF: film(`<rect x="118" y="0" width="52" height="170" rx="20"/><rect x="186" y="10" width="20" height="190" rx="9"/><ellipse cx="150" cy="200" rx="58" ry="30"/><ellipse cx="135" cy="250" rx="80" ry="26" fill-opacity=".6"/><path d="M186 150 l22 6" stroke="#05080b" stroke-width="4"/>`, "G · F"),
+    chevP: film(`<rect x="120" y="0" width="56" height="160" rx="20"/><ellipse cx="160" cy="185" rx="62" ry="32"/><ellipse cx="110" cy="230" rx="70" ry="24" fill-opacity=".7"/><rect x="170" y="215" width="100" height="22" rx="10" fill-opacity=".6"/>`, "G · P"),
+    poigF: film(`<rect x="88" y="150" width="56" height="150" rx="18"/><rect x="160" y="160" width="40" height="140" rx="14"/><circle cx="105" cy="120" r="18"/><circle cx="145" cy="115" r="17"/><circle cx="182" cy="122" r="15"/><circle cx="120" cy="85" r="15"/><circle cx="160" cy="82" r="16"/><rect x="95" y="0" width="22" height="66" rx="10"/><rect x="128" y="0" width="22" height="62" rx="10"/><rect x="160" y="0" width="22" height="64" rx="10"/><path d="M86 175 l60 -8" stroke="#05080b" stroke-width="5"/>`, "D · F"),
+    poigP: film(`<rect x="110" y="160" width="60" height="140" rx="20" transform="rotate(-6 140 230)"/><ellipse cx="148" cy="125" rx="40" ry="24"/><rect x="128" y="0" width="34" height="95" rx="14"/><path d="M108 178 l64 -2" stroke="#05080b" stroke-width="5"/>`, "D · P"),
+    epaule: film(`<circle cx="120" cy="130" r="58"/><rect x="88" y="170" width="60" height="130" rx="20"/><path d="M170 40 q60 30 120 10 l0 26 q-60 22 -126 -8z"/><ellipse cx="200" cy="140" rx="22" ry="60" fill-opacity=".55"/>`, "D · F"),
+    doigt: film(`<rect x="132" y="190" width="36" height="110" rx="14"/><rect x="134" y="105" width="32" height="78" rx="12"/><rect x="137" y="40" width="28" height="58" rx="11" transform="rotate(16 151 69)"/><circle cx="160" cy="44" r="5" fill-opacity="1"/>`, "D3 · P"),
+  };
+  const PHOTO = svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" fill="#d9b9a0"/><ellipse cx="150" cy="170" rx="90" ry="110" fill="#c99a7c"/><ellipse cx="190" cy="190" rx="44" ry="34" fill="#8b5a7a" opacity=".55"/><text x="14" y="26" fill="#3a2a20" font-family="monospace" font-size="16">Photo</text></svg>`);
+  const LOADING = svgUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" fill="#1a242d"/><text x="150" y="156" text-anchor="middle" fill="#8fa0ae" font-family="sans-serif" font-size="20">Chargement…</text></svg>`);
+
+  // ---------- State ----------
+  const now = Date.now(), H = 3600e3;
+  const iso = t => new Date(t).toISOString();
+  const KEY = "avis-traumato-web-v1";
+  const CFG = window.AVIS_CONFIG || {};
+  let MODE = "loading";            // "loading" | "login" | "profil" | "ready" | "config"
+  let SB = null, MYID = null, MYNAME = "", MYEMAIL = "";
+  let DEMANDES = [];
+  const names = {};
+  const pieceCache = new Map(), pieceFetching = new Set();
+  const UI = { role: null, view: "list", id: null, filter: "toutes", draftPieces: [], confirmDelete: false, busy: false, sent: false };
+  try { UI.role = localStorage.getItem(KEY + "-role"); } catch {}
+
+  // ---------- Helpers ----------
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const age = ddn => { const d = new Date(ddn), n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--; return a; };
+  const fmt = t => new Date(t).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  const ago = t => { const m = Math.max(0, Math.round((Date.now() - new Date(t)) / 60000)); if (m < 60) return `il y a ${m} min`; const h = Math.round(m / 60); return h < 48 ? `il y a ${h} h` : `il y a ${Math.round(h / 24)} j`; };
+  const UL = { "2h": ["u2h", "Sous 2 h"], "24h": ["u24h", "Sous 24 h"], "72h": ["u72h", "Sous 72 h"] };
+  const ST = { nouvelle: ["st-nouvelle", "Nouvelle"], prise: ["st-prise", "Prise en charge"], question: ["st-question", "Question posée"], avis: ["st-avis", "Avis rendu"], close: ["st-close", "Clôturée"] };
+  const pill = ([c, l]) => `<span class="pill ${c}">${l}</span>`;
+  const deadline = d => new Date(d.created).getTime() + parseInt(d.urgence) * H;
+  const remaining = d => { const r = deadline(d) - Date.now(); if (r <= 0) return "délai dépassé"; const h = Math.floor(r / H); return h ? `reste ${h} h` : `reste ${Math.round(r / 60000)} min`; };
+  const find = id => DEMANDES.find(d => d.id === id);
+  const toast = t => { const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.append(el); setTimeout(() => el.remove(), 2800); };
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const ROLE_LABEL = { mg: "Médecin traitant", ortho: "Équipe traumato" };
+
+  // Who is who: ids resolve to names through the viewer's profiles; examples carry a plain name.
+  const nameOf = (id, fallback, roleFallback) => {
+    if (id && id === MYID) return "Vous";
+    return (id && names[id]) || fallback || roleFallback || "Testeur";
+  };
+  async function loadProfils() {
+    const { data, error } = await SB.from("profils").select("id, nom");
+    if (error) return;
+    let changed = false;
+    data.forEach(p => { if (names[p.id] !== p.nom) { names[p.id] = p.nom; changed = true; } });
+    if (changed) softRender();
+  }
+  const resolveNames = () => {
+    const ids = new Set();
+    DEMANDES.forEach(d => { [d.creatorId, d.assigneId, d.avis?.auteurId, ...(d.messages || []).map(m => m.authorId)].forEach(i => i && ids.add(i)); });
+    if ([...ids].some(i => !(i in names))) loadProfils();
+  };
+
+  // Pieces: sample keys, legacy data URIs, or "p:<id>" stored as their own document.
+  const pieceLabel = p => p.startsWith("p:") || p.startsWith("data:") ? "Fichier joint" : ({ photo: "Photo clinique", chevF: "Radio face", chevP: "Radio profil", poigF: "Radio face", poigP: "Radio profil", epaule: "Radio face", doigt: "Radio profil" }[p] || "Pièce");
+  function src(p) {
+    if (!p) return PHOTO;
+    if (p.startsWith("data:")) return p;
+    if (!p.startsWith("p:")) return p === "photo" ? PHOTO : (XR[p] || PHOTO);
+    const id = p.slice(2);
+    if (pieceCache.has(id)) return pieceCache.get(id);
+    if (!pieceFetching.has(id)) {
+      pieceFetching.add(id);
+      getPiece(id).then(data => { if (data) { pieceCache.set(id, data); softRender(); } }).catch(() => {});
+    }
+    return LOADING;
+  }
+  async function getPiece(id) {
+    const { data, error } = await SB.from("pieces").select("data").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data ? data.data : null;
+  }
+
+  // ---------- Store (Supabase) ----------
+  async function putDemande(d, isNew) {
+    const body = clone(d); delete body.id;
+    const q = isNew ? SB.from("demandes").insert({ id: d.id, data: body }) : SB.from("demandes").update({ data: body }).eq("id", d.id);
+    const { error } = await q;
+    if (error) throw error;
+  }
+  async function putPiece(id, data, demandeId) {
+    pieceCache.set(id, data);
+    const { error } = await SB.from("pieces").insert({ id, demande: demandeId, data });
+    if (error) throw error;
+  }
+  async function removeDemande(d) {
+    const { error } = await SB.from("demandes").delete().eq("id", d.id);
+    if (error) throw error;
+  }
+  async function loadDemandes() {
+    const { data, error } = await SB.from("demandes").select("id, data").order("created_at", { ascending: false });
+    if (error) { toast("Impossible de charger les demandes : " + error.message); return; }
+    DEMANDES = data.map(r => ({ messages: [], pieces: [], ...r.data, id: r.id }));
+    softRender(); resolveNames();
+  }
+  function writeError(e) {
+    console.error(e);
+    toast("Enregistrement impossible : " + (e?.message || "réessayez dans un instant."));
+  }
+  // Mutate a demande, save it, and report failures.
+  async function mutate(d, fn, okMsg) {
+    const next = clone(d); fn(next);
+    const i = DEMANDES.findIndex(x => x.id === d.id); if (i >= 0) DEMANDES[i] = next;
+    try { await putDemande(next, false); if (okMsg) toast(okMsg); } catch (e) { writeError(e); loadDemandes(); }
+    render();
+  }
+  const newId = () => "AT-" + (Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 4)).toUpperCase();
+
+  // ---------- Views ----------
+  function viewLogin() {
+    if (MODE === "config") return `<div class="head"><div><div class="label">Configuration</div><h1>Application non configurée</h1><p class="muted">Renseignez l’adresse et la clé publique Supabase dans <span class="mono">config.js</span>.</p></div></div>`;
+    if (MODE === "loading") return `<div class="head"><div><div class="label">Avis Traumato</div><h1>Chargement…</h1></div></div>`;
+    if (MODE === "login") return `
+      <div class="head"><div><div class="label">Connexion</div><h1>Accéder à l’espace de test</h1>
+      <p class="muted" style="margin:4px 0 0">Entrez votre adresse e-mail : vous recevrez un lien de connexion, sans mot de passe.</p></div></div>
+      ${UI.sent ? `<div class="panel"><b>Lien envoyé.</b><span>Ouvrez l’e-mail reçu à cette adresse et cliquez sur le lien, depuis ce même appareil. Pensez à regarder dans les indésirables.</span><div><button class="btn ghost" id="login-again">Utiliser une autre adresse</button></div></div>` : `
+      <form id="loginform"><fieldset><legend>Adresse e-mail</legend>
+        <div class="field"><label for="email">E-mail</label><input type="text" inputmode="email" autocomplete="email" id="email" placeholder="prenom.nom@exemple.fr"></div>
+        <div class="err" id="login-err" hidden></div>
+        <div class="actions"><button class="btn primary" type="submit" id="login-btn">Recevoir le lien de connexion</button></div>
+      </fieldset></form>`}`;
+    return `
+      <div class="head"><div><div class="label">Bienvenue</div><h1>Présentez-vous</h1>
+      <p class="muted" style="margin:4px 0 0">Ce nom s’affiche sur vos demandes et vos avis.</p></div></div>
+      <form id="profilform"><fieldset><legend>Votre profil</legend>
+        <div class="field"><label for="pnom">Nom affiché</label><input type="text" id="pnom" placeholder="Ex. : Dr Claire Martin, ou Gauthier (interne)"></div>
+        <div class="field"><span>Vous testez surtout en tant que</span><div class="choice">
+          <label><input type="radio" name="prole" value="mg" checked>Médecin traitant</label><label><input type="radio" name="prole" value="ortho">Équipe traumato</label></div></div>
+        <div class="err" id="profil-err" hidden>Indiquez un nom.</div>
+        <div class="actions"><button class="btn primary" type="submit">Commencer</button></div>
+      </fieldset></form>`;
+  }
+
+  function mine(d) { return d.creatorId && d.creatorId === MYID; }
+
+  function viewList() {
+    const isMG = UI.role === "mg";
+    let items = DEMANDES.filter(d => !isMG || mine(d));
+    const counts = { toutes: items.length };
+    Object.keys(ST).forEach(k => counts[k] = items.filter(d => d.statut === k).length);
+    if (UI.filter !== "toutes") items = items.filter(d => d.statut === UI.filter);
+    if (isMG) items.sort((a, b) => new Date(b.created) - new Date(a.created));
+    else items.sort((a, b) => (["avis", "close"].includes(a.statut)) - (["avis", "close"].includes(b.statut)) || deadline(a) - deadline(b));
+    const filt = ["toutes", ...Object.keys(ST)].filter(k => k === "toutes" || counts[k])
+      .map(k => `<button class="chip" data-filter="${k}" aria-pressed="${UI.filter === k}">${k === "toutes" ? "Toutes" : ST[k][1]} <span class="mono">${counts[k]}</span></button>`).join("");
+    const empty = isMG
+      ? `<div class="empty">Vous n’avez encore envoyé aucune demande.<br><br><button class="btn primary" id="new">+ Créer votre première demande</button></div>`
+      : `<div class="empty">Aucune demande pour l’instant. Les demandes envoyées par les médecins traitants apparaîtront ici dès leur envoi.</div>`;
+    return `
+      <div class="head">
+        <div><div class="label">${isMG ? "Mes demandes d'avis" : "File des demandes"}</div>
+        <h1>${isMG ? "Demandes envoyées" : "À traiter par l'équipe"}</h1>
+        <p class="muted" style="margin:4px 0 0">${isMG ? "Suivez vos demandes de télé-expertise et les avis reçus." : "Triées par échéance de réponse. Prenez une demande pour y répondre."}</p></div>
+        ${isMG && counts.toutes ? `<button class="btn primary" id="new">+ Nouvelle demande</button>` : ""}
+      </div>
+      ${counts.toutes ? `<div class="filters">${filt}</div>` : ""}
+      <div class="list">${items.length ? items.map(d => `
+        <button class="row" data-open="${esc(d.id)}">
+          <img class="thumb" alt="" src="${src(d.pieces?.[0] || "photo")}">
+          <div class="body">
+            <div class="t">${esc(d.region)} ${esc((d.cote || "").toLowerCase())} · ${esc(d.patient.nom.split(" ")[0])} ${esc(d.patient.nom.split(" ")[1]?.[0] || "")}., ${age(d.patient.ddn)} ans</div>
+            <div class="s">${esc(d.question)}</div>
+            <div class="s mono">${esc(d.id)} · ${isMG ? "envoyée " + ago(d.created) : esc(nameOf(d.creatorId, d.mgNom, "Médecin traitant")) + " · " + ago(d.created)}${d.assigneId || d.assigneNom ? " · " + esc(nameOf(d.assigneId, d.assigneNom)) : ""}</div>
+          </div>
+          <div class="meta">${pill(ST[d.statut])}${pill(UL[d.urgence])}${!isMG && !["avis", "close"].includes(d.statut) ? `<span class="mono muted">${remaining(d)}</span>` : ""}</div>
+        </button>`).join("") : (counts.toutes ? `<div class="empty">Aucune demande dans cette catégorie.</div>` : empty)}
+      </div>`;
+  }
+
+  function avisBlock(a) {
+    return `<div class="avis">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3>Avis rendu</h3><span class="mono muted">${esc(nameOf(a.auteurId, a.auteurNom))} · ${fmt(a.at)}</span></div>
+      <div><div class="label">Diagnostic</div>${esc(a.diagnostic)}</div>
+      <div><div class="label">Conduite à tenir</div><ul>${a.cat.map(c => `<li>${esc(c)}</li>`).join("")}</ul></div>
+      ${a.commentaire ? `<div><div class="label">Commentaire</div>${esc(a.commentaire)}</div>` : ""}
+      ${a.rdv ? `<div><div class="label">Rendez-vous proposé</div>${esc(a.rdv)}</div>` : ""}
+      <div class="billing">Télé-expertise facturable : RQD pour le médecin requis, RDV pour le médecin requérant (montants à vérifier).</div>
+    </div>`;
+  }
+
+  const CAT = ["Traitement fonctionnel (attelle, glaçage, appui selon douleur)", "Immobilisation par botte ou manchette plâtrée", "Immobilisation provisoire par manchette plâtrée", "Attelle de Stack 24 h/24 pendant 6 semaines", "Imagerie complémentaire (scanner / IRM)", "Consultation orthopédique sous 7 jours", "Adresser aux urgences aujourd'hui", "Kinésithérapie"];
+
+  function viewDetail() {
+    const d = find(UI.id);
+    if (!d) { UI.view = "list"; return viewList(); }
+    const isMG = UI.role === "mg";
+    const open = !["avis", "close"].includes(d.statut);
+    const canAct = !isMG && open;
+    const thread = [{ ev: true, text: `Demande envoyée par ${nameOf(d.creatorId, d.mgNom, "le médecin traitant")}`, at: d.created }, ...(d.messages || [])]
+      .sort((a, b) => new Date(a.at) - new Date(b.at));
+    return `
+      <button class="btn ghost back" data-back>← Retour à la liste</button>
+      <div class="dossier-head">
+        <h1>${esc(d.region)} ${esc((d.cote || "").toLowerCase())} · ${esc(d.patient.nom)}</h1>
+        ${pill(ST[d.statut])}${pill(UL[d.urgence])}<span class="mono muted">${esc(d.id)}</span>
+      </div>
+      <div class="grid2">
+        <section class="panel" aria-label="Dossier clinique">
+          <dl class="kv">
+            <dt>Patient (fictif)</dt><dd>${esc(d.patient.nom)}, ${d.patient.sexe === "F" ? "femme" : "homme"}, ${age(d.patient.ddn)} ans <span class="mono muted">né(e) le ${new Date(d.patient.ddn).toLocaleDateString("fr-FR")}</span></dd>
+            <dt>Demandeur</dt><dd>${esc(nameOf(d.creatorId, d.mgNom, "Médecin traitant"))}${d.cabinet ? `<br><span class="muted">${esc(d.cabinet)}</span>` : ""}</dd>
+            <dt>Traumatisme</dt><dd>${d.date ? "le " + new Date(d.date).toLocaleDateString("fr-FR") + " · " : ""}${esc(d.region)} ${esc((d.cote || "").toLowerCase())}</dd>
+            <dt>Mécanisme</dt><dd>${esc(d.mecanisme)}</dd>
+            <dt>Examen</dt><dd>${esc(d.examen)}</dd>
+          </dl>
+          <div><div class="label" style="margin-bottom:6px">Pièces jointes · ${d.pieces.length}</div>
+            ${d.pieces.length ? `<div class="films">${d.pieces.map((p, i) => `<button class="film" data-zoom="${i}" aria-label="Agrandir ${pieceLabel(p)}"><img alt="" src="${src(p)}"><span>${pieceLabel(p)}</span></button>`).join("")}</div>` : `<div class="muted">Aucune pièce jointe.</div>`}
+          </div>
+          <div style="background:var(--sunken);border-radius:8px;padding:10px 12px"><div class="label">Question posée</div>${esc(d.question)}</div>
+          <div class="muted" style="font-size:.82rem">Consentement du patient à la télé-expertise recueilli par le médecin traitant.</div>
+          ${mine(d) ? (UI.confirmDelete
+            ? `<div class="actions" style="justify-content:flex-start"><span class="err">Supprimer définitivement cette demande pour tout le monde ?</span><button class="btn danger" data-del-yes>Supprimer</button><button class="btn" data-del-no>Annuler</button></div>`
+            : `<div><button class="btn ghost danger" data-del>Supprimer cette demande</button></div>`) : ""}
+        </section>
+        <section class="panel" aria-label="Échanges et avis">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <h2>Échanges</h2>
+            ${open ? `<span class="mono muted">échéance ${fmt(deadline(d))} · ${remaining(d)}</span>` : ""}
+          </div>
+          <div class="thread">${thread.map(m => m.ev ? `<div class="msg event">${esc(m.text)} · ${fmt(m.at)}</div>` :
+            `<div class="msg ${m.authorId && m.authorId === MYID ? "me" : ""}"><div class="who"><b>${esc(nameOf(m.authorId, m.authorName, ROLE_LABEL[m.role]))}</b><span class="mono">${fmt(m.at)}</span></div>${esc(m.text)}</div>`).join("")}</div>
+          ${d.avis ? avisBlock(d.avis) : ""}
+          ${!isMG && d.statut === "nouvelle" ? `<button class="btn primary" data-take>Prendre la demande</button>` : ""}
+          ${open && (isMG || d.statut !== "nouvelle") ? `
+            <form id="msgform">
+              <div class="field"><label for="msg">${isMG ? "Répondre à l'équipe" : "Poser une question au médecin traitant"}</label>
+              <textarea id="msg" placeholder="${isMG ? "Ex. : premier épisode, cliché post-réduction joint." : "Ex. : avez-vous un cliché de profil strict ?"}"></textarea></div>
+              <div class="actions"><button class="btn" type="submit">Envoyer le message</button></div>
+            </form>` : ""}
+          ${canAct && d.statut !== "nouvelle" ? avisForm() : ""}
+          ${d.avis ? `<div class="actions">
+            <button class="btn" data-cr>Voir le compte rendu</button>
+            ${isMG && d.statut === "avis" ? `<button class="btn primary" data-close>Clôturer la demande</button>` : ""}
+          </div>` : ""}
+        </section>
+      </div>`;
+  }
+
+  function avisForm() {
+    return `<form id="avisform">
+      <fieldset><legend>Rendre l'avis</legend>
+        <div class="field"><label for="diag">Diagnostic retenu</label><textarea id="diag" placeholder="Ex. : fracture de la malléole externe Weber B non déplacée."></textarea></div>
+        <div class="field"><span>Conduite à tenir</span><div class="choice">${CAT.map((c, i) => `<label><input type="checkbox" name="cat" value="${i}">${c}</label>`).join("")}</div></div>
+        <div class="field"><label for="com">Commentaire pour le médecin traitant</label><textarea id="com" placeholder="Antalgie, surveillance, signes devant faire reconsulter…"></textarea></div>
+        <div class="field"><label for="rdv">Rendez-vous proposé (facultatif)</label><input type="text" id="rdv" placeholder="Ex. : jeudi 14 h, consultation post-urgences"></div>
+        <div class="err" id="avis-err" hidden>Indiquez un diagnostic et au moins une conduite à tenir.</div>
+        <div class="actions"><button class="btn primary" type="submit">Envoyer l'avis</button></div>
+      </fieldset>
+    </form>`;
+  }
+
+  const REGIONS = ["Épaule", "Coude", "Poignet", "Main / doigt", "Hanche", "Genou", "Cheville", "Pied", "Rachis"];
+  function viewNew() {
+    let cab = ""; try { cab = localStorage.getItem(KEY + "-cabinet") || ""; } catch {}
+    return `
+      <button class="btn ghost back" data-back>← Annuler</button>
+      <div class="head" style="padding-top:8px"><div><div class="label">Télé-expertise</div><h1>Nouvelle demande d'avis</h1></div></div>
+      <form id="newform" novalidate>
+        <fieldset><legend>Demandeur</legend>
+          <div class="field"><label for="cabinet">Lieu d’exercice (facultatif)</label><input type="text" id="cabinet" value="${esc(cab)}" placeholder="Ex. : Cabinet médical, Villeurbanne"></div>
+        </fieldset>
+        <fieldset><legend>Patient</legend>
+          <div class="cols">
+            <div class="field"><label for="nom">Nom et prénom (fictifs)</label><input type="text" id="nom" placeholder="Ex. : PETIT Marc" required></div>
+            <div class="field"><label for="ddn">Date de naissance</label><input type="date" id="ddn" required></div>
+            <div class="field"><span>Sexe</span><div class="choice"><label><input type="radio" name="sexe" value="F" checked>F</label><label><input type="radio" name="sexe" value="M">M</label></div></div>
+          </div>
+        </fieldset>
+        <fieldset><legend>Traumatisme</legend>
+          <div class="field"><span>Région</span><div class="choice bodymap">${REGIONS.map((r, i) => `<label><input type="radio" name="region" value="${r}" ${i === 6 ? "checked" : ""}>${r}</label>`).join("")}</div></div>
+          <div class="cols">
+            <div class="field"><span>Côté</span><div class="choice"><label><input type="radio" name="cote" value="Gauche" checked>Gauche</label><label><input type="radio" name="cote" value="Droite">Droit</label><label><input type="radio" name="cote" value="Bilatéral">Bilatéral</label></div></div>
+            <div class="field"><label for="dtrauma">Date du traumatisme</label><input type="date" id="dtrauma" value="${new Date().toISOString().slice(0, 10)}"></div>
+          </div>
+          <div class="field"><label for="meca">Mécanisme</label><textarea id="meca" placeholder="Ex. : chute de vélo sur l'épaule droite."></textarea></div>
+          <div class="field"><label for="exam">Examen clinique</label><textarea id="exam" placeholder="Œdème, points douloureux, mobilité, état vasculo-nerveux…"></textarea></div>
+        </fieldset>
+        <fieldset><legend>Imagerie et photos</legend>
+          <div class="drop">
+            <div class="field"><label for="files">Ajouter des photos ou des clichés (4 images au plus)</label><input type="file" id="files" accept="image/*" multiple></div>
+            <div><button class="btn" type="button" id="sample">Joindre une radio d'exemple</button></div>
+            <div class="films" id="draft-films"></div>
+          </div>
+        </fieldset>
+        <fieldset><legend>Question et délai</legend>
+          <div class="field"><label for="quest">Question posée à l'équipe</label><textarea id="quest" required placeholder="Ex. : fracture visible ? Immobilisation et suivi ?"></textarea></div>
+          <div class="field"><span>Délai de réponse souhaité</span><div class="choice">
+            <label><input type="radio" name="urg" value="2h">Sous 2 h</label><label><input type="radio" name="urg" value="24h" checked>Sous 24 h</label><label><input type="radio" name="urg" value="72h">Sous 72 h</label></div></div>
+          <label class="check"><input type="checkbox" id="consent">Le patient a été informé et consent à la télé-expertise et au partage de ses images.</label>
+          <div class="err" id="new-err" hidden></div>
+        </fieldset>
+        <div class="actions"><button class="btn" type="button" data-back>Annuler</button><button class="btn primary" type="submit" id="send">Envoyer la demande</button></div>
+      </form>`;
+  }
+
+  // ---------- Render ----------
+  function header() {
+    const ready = MODE === "ready";
+    document.querySelector(".seg").hidden = !ready;
+    $("#role-mg").setAttribute("aria-pressed", UI.role === "mg");
+    $("#role-ortho").setAttribute("aria-pressed", UI.role === "ortho");
+    $("#whoami").textContent = ready ? (MYNAME || MYEMAIL) + " · " + ROLE_LABEL[UI.role] : "Télé-expertise en traumatologie";
+    $("#banner").textContent = "Prototype de test : ce que vous saisissez est visible par tous les testeurs. Patients fictifs uniquement, aucune donnée réelle.";
+  }
+  function render() {
+    header();
+    const ready = MODE === "ready";
+    $("#app").innerHTML = (!ready ? viewLogin() : UI.view === "detail" ? viewDetail() : UI.view === "new" ? viewNew() : viewList()) +
+      `<div class="foot"><span>Prototype Avis Traumato${ready ? " · mise à jour en direct" : ""}</span>${ready ? `<button class="btn ghost" id="logout">Se déconnecter</button>` : ""}</div>`;
+    if (UI.view === "new" && ready) renderDraft();
+  }
+  // Re-render after live data arrives without losing what the viewer is typing.
+  function softRender() {
+    if (MODE !== "ready") return;
+    if (UI.view === "new") { renderDraft(); return; }
+    const app = $("#app"), vals = {}, checks = {};
+    app.querySelectorAll("input[id], textarea[id]").forEach(el => vals[el.id] = el.value);
+    app.querySelectorAll("input[type=checkbox][name]").forEach(el => checks[el.name + ":" + el.value] = el.checked);
+    const act = document.activeElement, actId = act && app.contains(act) ? act.id : null;
+    const sel = actId && "selectionStart" in act ? [act.selectionStart, act.selectionEnd] : null;
+    const y = window.scrollY;
+    render();
+    Object.entries(vals).forEach(([id, v]) => { const el = document.getElementById(id); if (el && el.type !== "file") el.value = v; });
+    app.querySelectorAll("input[type=checkbox][name]").forEach(el => { const k = el.name + ":" + el.value; if (k in checks) el.checked = checks[k]; });
+    if (actId) { const el = document.getElementById(actId); if (el) { el.focus({ preventScroll: true }); if (sel) try { el.setSelectionRange(...sel); } catch {} } }
+    window.scrollTo(0, y);
+  }
+  function renderDraft() {
+    const el = $("#draft-films"); if (!el) return;
+    el.innerHTML = UI.draftPieces.map((p, i) => `<div class="film"><img alt="" src="${src(p)}"><span>${pieceLabel(p)}</span></div>`).join("");
+  }
+  const go = (view, id = null) => { UI.view = view; UI.id = id; UI.confirmDelete = false; render(); window.scrollTo({ top: 0 }); };
+  const setRole = r => { UI.role = r; UI.filter = "toutes"; try { localStorage.setItem(KEY + "-role", r); } catch {} go("list"); };
+  $("#role-mg").onclick = () => setRole("mg");
+  $("#role-ortho").onclick = () => setRole("ortho");
+
+  // ---------- Images ----------
+  function compress(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => {
+        let max = 1400, q = .78, out;
+        do {
+          const s = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          out = c.toDataURL("image/jpeg", q); max *= .8; q = Math.max(.5, q - .07);
+        } while (out.length > 200000 && max > 400);
+        URL.revokeObjectURL(url); resolve(out);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("image")); };
+      img.src = url;
+    });
+  }
+
+  // ---------- Events ----------
+  document.addEventListener("click", async e => {
+    const t = e.target.closest("button"); if (!t) return;
+    const d = find(UI.id);
+    if (t.dataset.open) go("detail", t.dataset.open);
+    else if (t.dataset.filter) { UI.filter = t.dataset.filter; render(); }
+    else if (t.hasAttribute("data-back")) go("list");
+    else if (t.id === "new") { UI.draftPieces = []; go("new"); }
+    else if (t.id === "sample") { if (UI.draftPieces.length >= 4) return toast("4 images au plus par demande."); const pool = ["chevF", "chevP", "poigF", "epaule", "doigt", "photo"]; UI.draftPieces.push(pool[UI.draftPieces.length % pool.length]); renderDraft(); }
+    else if (t.id === "logout") { await SB.auth.signOut(); }
+    else if (t.id === "login-again") { UI.sent = false; render(); }
+    else if (t.hasAttribute("data-take")) mutate(d, x => { x.statut = "prise"; x.assigneId = MYID; x.messages.push({ authorId: MYID, role: "ortho", at: iso(Date.now()), text: "Je prends la demande." }); }, "Demande prise en charge");
+    else if (t.hasAttribute("data-close")) mutate(d, x => { x.statut = "close"; }, "Demande clôturée");
+    else if (t.hasAttribute("data-del")) { UI.confirmDelete = true; render(); }
+    else if (t.hasAttribute("data-del-no")) { UI.confirmDelete = false; render(); }
+    else if (t.hasAttribute("data-del-yes")) {
+      try { await removeDemande(d); DEMANDES = DEMANDES.filter(x => x.id !== d.id); toast("Demande supprimée"); go("list"); } catch (err) { writeError(err); }
+    }
+    else if (t.dataset.zoom !== undefined) {
+      const p = d.pieces[+t.dataset.zoom];
+      modal(`<img alt="${pieceLabel(p)}" src="${src(p)}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>${pieceLabel(p)} · ${esc(d.region)} ${esc((d.cote || "").toLowerCase())}</span><button class="btn" data-x>Fermer</button></div>`);
+    }
+    else if (t.hasAttribute("data-cr")) {
+      const a = d.avis;
+      const txt = `COMPTE RENDU DE TÉLÉ-EXPERTISE · ${d.id}
+Patient : ${d.patient.nom}, ${age(d.patient.ddn)} ans (données fictives)
+Demandeur : ${nameOf(d.creatorId, d.mgNom, "Médecin traitant")}${d.cabinet ? ", " + d.cabinet : ""}
+Requis : ${nameOf(a.auteurId, a.auteurNom)}, équipe de traumatologie
+Date de l'avis : ${new Date(a.at).toLocaleString("fr-FR")}
+
+Motif : ${d.region} ${(d.cote || "").toLowerCase()}${d.date ? ", traumatisme du " + new Date(d.date).toLocaleDateString("fr-FR") : ""}
+Question : ${d.question}
+
+Diagnostic : ${a.diagnostic}
+Conduite à tenir :
+${a.cat.map(c => "  - " + c).join("\n")}
+${a.commentaire ? "Commentaire : " + a.commentaire + "\n" : ""}${a.rdv ? "Rendez-vous : " + a.rdv + "\n" : ""}
+Acte : télé-expertise (RQD / RDV).`;
+      modal(`<h2>Compte rendu</h2><p class="muted" style="margin:0">Dans la version réelle, ce document part en PDF vers la messagerie sécurisée du médecin traitant et le DMP.</p><pre id="cr">${esc(txt)}</pre><div class="actions"><button class="btn" data-copy>Copier le texte</button><button class="btn primary" data-x>Fermer</button></div>`);
+    }
+    else if (t.hasAttribute("data-copy")) {
+      const txt = $("#cr").textContent;
+      const fallback = () => { getSelection().selectAllChildren($("#cr")); toast("Texte sélectionné, copiez-le avec Ctrl+C"); };
+      try { navigator.clipboard.writeText(txt).then(() => toast("Texte copié"), fallback); } catch { fallback(); }
+    }
+    else if (t.hasAttribute("data-x")) t.closest(".modal").remove();
+  });
+
+  function modal(html) {
+    const m = document.createElement("div"); m.className = "modal"; m.innerHTML = `<div class="box" role="dialog" aria-modal="true">${html}</div>`;
+    m.addEventListener("click", e => { if (e.target === m) m.remove(); });
+    document.body.append(m); m.querySelector("button")?.focus();
+  }
+  document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelector(".modal")?.remove(); });
+
+  document.addEventListener("change", async e => {
+    if (e.target.id !== "files") return;
+    const files = [...e.target.files];
+    for (const f of files) {
+      if (UI.draftPieces.length >= 4) { toast("4 images au plus par demande."); break; }
+      try { UI.draftPieces.push(await compress(f)); renderDraft(); } catch { toast("Image illisible : " + f.name); }
+    }
+    e.target.value = "";
+  });
+
+  document.addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, v = id => f.querySelector("#" + id)?.value.trim();
+    const radio = n => f.querySelector(`input[name="${n}"]:checked`)?.value;
+    if (f.id === "loginform") {
+      const email = v("email"), err = $("#login-err");
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.hidden = false; err.textContent = "Adresse e-mail invalide."; return; }
+      $("#login-btn").textContent = "Envoi…";
+      const { error } = await SB.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+      if (error) { err.hidden = false; err.textContent = "Envoi impossible : " + error.message; $("#login-btn").textContent = "Recevoir le lien de connexion"; return; }
+      UI.sent = true; render();
+    }
+    if (f.id === "profilform") {
+      const nom = v("pnom"); if (!nom) { $("#profil-err").hidden = false; return; }
+      const role = radio("prole");
+      const { error } = await SB.from("profils").upsert({ id: MYID, nom, role });
+      if (error) { $("#profil-err").hidden = false; $("#profil-err").textContent = "Enregistrement impossible : " + error.message; return; }
+      names[MYID] = nom; MYNAME = nom; if (!UI.role) UI.role = role;
+      try { localStorage.setItem(KEY + "-role", UI.role); } catch {}
+      enterApp();
+    }
+    if (f.id === "newform") {
+      if (UI.busy) return;
+      const err = $("#new-err"); const miss = [];
+      if (!v("nom")) miss.push("le nom"); if (!v("ddn")) miss.push("la date de naissance"); if (!v("quest")) miss.push("la question");
+      if (!f.querySelector("#consent").checked) miss.push("le consentement du patient");
+      if (miss.length) { err.hidden = false; err.textContent = "À compléter : " + miss.join(", ") + "."; return; }
+      UI.busy = true; $("#send").textContent = "Envoi…";
+      try { localStorage.setItem(KEY + "-cabinet", v("cabinet")); } catch {}
+      const id = newId();
+      try {
+        const pieces = UI.draftPieces.map((p, i) => p.startsWith("data:") ? "p:" + id + "-" + i : p);
+        const d = { id, created: iso(Date.now()), creatorId: MYID, cabinet: v("cabinet"),
+          patient: { nom: v("nom").toUpperCase(), ddn: v("ddn"), sexe: radio("sexe") }, region: radio("region"), cote: radio("cote"), date: v("dtrauma"),
+          mecanisme: v("meca") || "Non précisé.", examen: v("exam") || "Non précisé.", question: v("quest"),
+          urgence: radio("urg"), statut: "nouvelle", pieces, messages: [] };
+        await putDemande(d, true);
+        for (const [i, p] of UI.draftPieces.entries()) if (p.startsWith("data:")) await putPiece(id + "-" + i, p, id);
+        DEMANDES = [d, ...DEMANDES.filter(x => x.id !== id)];
+        UI.draftPieces = []; toast("Demande envoyée à l'équipe traumato"); go("detail", id);
+      } catch (x) { writeError(x); $("#send").textContent = "Envoyer la demande"; }
+      UI.busy = false;
+    }
+    if (f.id === "msgform") {
+      const text = v("msg"); if (!text) return;
+      const side = UI.role;
+      mutate(find(UI.id), x => {
+        x.messages.push({ authorId: MYID, role: side, at: iso(Date.now()), text });
+        if (side === "ortho") { x.statut = "question"; x.assigneId = x.assigneId || MYID; } else if (x.statut === "question") x.statut = "prise";
+      });
+    }
+    if (f.id === "avisform") {
+      const cats = [...f.querySelectorAll('input[name="cat"]:checked')].map(i => CAT[+i.value]);
+      if (!v("diag") || !cats.length) { $("#avis-err").hidden = false; return; }
+      const avis = { auteurId: MYID, at: iso(Date.now()), diagnostic: v("diag"), cat: cats, commentaire: v("com"), rdv: v("rdv") };
+      mutate(find(UI.id), x => { x.avis = avis; x.statut = "avis"; x.assigneId = MYID; }, "Avis envoyé au médecin traitant");
+    }
+  });
+
+  // ---------- Boot ----------
+  let channel = null;
+  function enterApp() {
+    MODE = "ready"; UI.view = "list"; render();
+    loadDemandes(); loadProfils();
+    if (!channel) channel = SB.channel("demandes-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "demandes" }, () => loadDemandes())
+      .subscribe();
+  }
+  async function onSession(session) {
+    if (!session) {
+      MODE = "login"; MYID = null; DEMANDES = [];
+      if (channel) { SB.removeChannel(channel); channel = null; }
+      return render();
+    }
+    if (MYID === session.user.id && MODE === "ready") return;
+    MYID = session.user.id; MYEMAIL = session.user.email || "";
+    UI.sent = false;
+    const { data } = await SB.from("profils").select("nom, role").eq("id", MYID).maybeSingle();
+    if (!data) { MODE = "profil"; return render(); }
+    MYNAME = data.nom; names[MYID] = data.nom;
+    if (!UI.role) UI.role = data.role;
+    enterApp();
+  }
+  function boot() {
+    render();
+    if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) { MODE = "config"; return render(); }
+    SB = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+    SB.auth.onAuthStateChange((_event, session) => { setTimeout(() => onSession(session), 0); });
+  }
+  boot();
+})();
+</script>
+
+
+</body>
+</html>
